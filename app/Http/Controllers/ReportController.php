@@ -17,6 +17,7 @@ class ReportController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'status' => ['required', 'in:lost,found'],
+            'category' => ['required', 'in:'.implode(',', array_keys(config('lostfound.categories')))],
             'created_at' => ['required', 'date'],
             'location' => ['required', 'string', 'max:255'],
             'contact_info' => ['required', 'string', 'max:255'],

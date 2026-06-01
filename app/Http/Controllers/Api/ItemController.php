@@ -13,6 +13,7 @@ class ItemController extends Controller
         return response()->json(
             $items->filtered([
                 'status' => $request->query('status', 'all'),
+                'category' => $request->query('category', 'all'),
                 'search' => $request->query('search'),
                 'date' => $request->query('date'),
                 'sort' => $request->query('sort', 'desc'),
@@ -25,6 +26,7 @@ class ItemController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'status' => ['required', 'in:lost,found'],
+            'category' => ['required', 'in:'.implode(',', array_keys(config('lostfound.categories')))],
             'created_at' => ['required', 'date'],
             'location' => ['required', 'string', 'max:255'],
             'contact_info' => ['required', 'string', 'max:255'],

@@ -5,13 +5,14 @@ namespace App\Services;
 use App\Models\Item;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class ItemDataService
 {
     public function all(): array
     {
-        return Item::query()
+        return $this->openItemsQuery()
             ->orderByDesc('reported_at')
             ->get()
             ->map(fn (Item $item) => $item->toLegacyArray())
@@ -27,7 +28,7 @@ class ItemDataService
 
     public function recent(int $limit = 4): array
     {
-        return Item::query()
+        return $this->openItemsQuery()
             ->orderByDesc('reported_at')
             ->limit($limit)
             ->get()
@@ -35,19 +36,60 @@ class ItemDataService
             ->all();
     }
 
+    public function categoryCounts(): array
+    {
+        return $this->openItemsQuery()
+            ->select('category', DB::raw('count(*) as total'))
+            ->groupBy('category')
+            ->pluck('total', 'category')
+            ->all();
+    }
+
+    public function stats(): array
+    {
+        $reported = $this->openItemsQuery()->count();
+        $found = $this->openItemsQuery()->where('status', 'found')->count();
+        $lost = $this->openItemsQuery()->where('status', 'lost')->count();
+
+        return [
+            'reported' => $reported,
+            'found' => $found,
+            'lost' => $lost,
+            'active' => $reported,
+        ];
+    }
+
     public function filtered(array $filters = []): array
     {
-        $query = Item::query();
+        $query = ! empty($filters['include_claimed'])
+            ? Item::query()
+            : $this->openItemsQuery();
 
         if (! empty($filters['status']) && $filters['status'] !== 'all') {
             $query->where('status', $filters['status']);
         }
 
+        if (! empty($filters['category']) && $filters['category'] !== 'all') {
+            $query->where('category', $filters['category']);
+        }
+
         if (! empty($filters['search'])) {
             $term = $filters['search'];
-            $query->where(function ($q) use ($term) {
+            $matchingCategories = collect(config('lostfound.categories'))
+                ->filter(fn (string $label, string $slug) => str_contains(strtolower($label), strtolower($term))
+                    || str_contains(strtolower(str_replace('_', ' ', $slug)), strtolower($term)))
+                ->keys()
+                ->all();
+
+            $query->where(function ($q) use ($term, $matchingCategories) {
                 $q->where('title', 'like', "%{$term}%")
-                    ->orWhere('location', 'like', "%{$term}%");
+                    ->orWhere('location', 'like', "%{$term}%")
+                    ->orWhere('description', 'like', "%{$term}%")
+                    ->orWhere('category', 'like', "%{$term}%");
+
+                if ($matchingCategories) {
+                    $q->orWhereIn('category', $matchingCategories);
+                }
             });
         }
 
@@ -71,6 +113,7 @@ class ItemDataService
         $item = Item::create([
             'title' => $data['title'],
             'status' => $data['status'],
+            'category' => $data['category'] ?? 'other',
             'reported_at' => Carbon::parse($data['created_at']),
             'location' => $data['location'],
             'contact_info' => $data['contact_info'],
@@ -109,6 +152,11 @@ class ItemDataService
 
         $path = $image->store('items', 'public');
 
-        return [asset('storage/'.$path), $path];
+        return [Storage::disk('public')->url($path), $path];
+    }
+
+    private function openItemsQuery()
+    {
+        return Item::query()->whereDoesntHave('claims');
     }
 }

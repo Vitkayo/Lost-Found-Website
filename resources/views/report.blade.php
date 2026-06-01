@@ -3,74 +3,69 @@
 @section('title', 'Report an Item')
 
 @section('content')
-<div class="bg-white min-vh-100 pb-5">
-    <div class="text-white py-4 text-center shadow-sm mb-4" style="background: #0d6efd; border-bottom: 5px solid #ffc107;">
-        <h2 class="fw-bold text-uppercase mb-1">Report an Item</h2>
-        <p class="opacity-100 fw-bold small mb-0">Help the RUPP community stay connected.</p>
-    </div>
-
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-11 col-md-8 col-lg-6">
-                <div class="card shadow-lg border border-3 border-dark p-2" style="border-radius: 25px;">
-                    <div class="card-body">
-                        <form method="post" action="{{ route('report.store') }}" enctype="multipart/form-data">
-                            @csrf
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Item Name</label>
-                                <input type="text" name="title" value="{{ old('title') }}"
-                                       class="form-control border-2 border-dark rounded-3 @error('title') is-invalid @enderror"
-                                       placeholder="Ex: Blue Wallet, Student ID" required>
-                                @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-
-                            <div class="row g-2 mb-3">
-                                <div class="col-6">
-                                    <label class="form-label fw-bold">Status</label>
-                                    <select name="status" class="form-select border-2 border-dark rounded-3">
-                                        <option value="lost" @selected(old('status', 'lost') === 'lost')>Lost Item</option>
-                                        <option value="found" @selected(old('status') === 'found')>Found Item</option>
-                                    </select>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label fw-bold">Date & Time</label>
-                                    <input type="datetime-local" name="created_at"
-                                           value="{{ old('created_at', now()->format('Y-m-d\TH:i')) }}"
-                                           class="form-control border-2 border-dark rounded-3" required>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Location</label>
-                                <input type="text" name="location" value="{{ old('location') }}"
-                                       class="form-control border-2 border-dark rounded-3" placeholder="Ex: Building A" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Contact Info</label>
-                                <input type="text" name="contact_info" value="{{ old('contact_info') }}"
-                                       class="form-control border-2 border-dark rounded-3" placeholder="Telegram or Phone number" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Description (Optional)</label>
-                                <textarea name="description" rows="2" class="form-control border-2 border-dark rounded-3"
-                                          placeholder="Color, brand, or unique marks...">{{ old('description') }}</textarea>
-                            </div>
-
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">Attach Photo</label>
-                                <input type="file" name="image" accept="image/*" class="form-control border-2 border-dark rounded-3">
-                            </div>
-
-                            <button type="submit" class="btn btn-primary w-100 fw-bold py-3 shadow-sm rounded-pill border-3 border-dark">
-                                SUBMIT REPORT
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
+<div class="cf-page">
+    <section class="cf-board-hero">
+        <div class="cf-container">
+            <h1>Report an Item</h1>
+            <p>Share the key details so the campus community can help return the item quickly.</p>
         </div>
-    </div>
+    </section>
+
+    <section class="cf-container cf-form-shell">
+        <form method="post" action="{{ route('report.store') }}" enctype="multipart/form-data" class="cf-page-form">
+            @csrf
+            <label>
+                <span>Item Name</span>
+                <input type="text" name="title" value="{{ old('title') }}" placeholder="Ex: MacBook Air M2" required>
+                @error('title')<small class="cf-error">{{ $message }}</small>@enderror
+            </label>
+
+            <div class="cf-form-grid">
+                <label>
+                    <span>Status</span>
+                    <select name="status">
+                        <option value="lost" @selected(old('status', 'lost') === 'lost')>Lost</option>
+                        <option value="found" @selected(old('status') === 'found')>Found</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Category</span>
+                    <select name="category" required>
+                        @foreach(config('lostfound.categories') as $slug => $label)
+                            <option value="{{ $slug }}" @selected(old('category', 'other') === $slug)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('category')<small class="cf-error">{{ $message }}</small>@enderror
+                </label>
+            </div>
+
+            <label>
+                <span>Date &amp; Time</span>
+                <input type="datetime-local" name="created_at" value="{{ old('created_at', now()->format('Y-m-d\TH:i')) }}" required>
+            </label>
+
+            <label>
+                <span>Location</span>
+                <input type="text" name="location" value="{{ old('location') }}" placeholder="Ex: Main Library, 2nd floor" required>
+            </label>
+
+            <label>
+                <span>Contact Info</span>
+                <input type="text" name="contact_info" value="{{ old('contact_info') }}" placeholder="Phone or Telegram" required>
+            </label>
+
+            <label>
+                <span>Description</span>
+                <textarea name="description" rows="4" placeholder="Color, brand, unique marks, or where it was last seen...">{{ old('description') }}</textarea>
+            </label>
+
+            <label>
+                <span>Attach Photo</span>
+                <input type="file" name="image" accept="image/*">
+            </label>
+
+            <button type="submit" class="cf-btn cf-btn-primary">Submit Report</button>
+        </form>
+    </section>
 </div>
 @endsection

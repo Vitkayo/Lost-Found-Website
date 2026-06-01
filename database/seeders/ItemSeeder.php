@@ -20,6 +20,7 @@ class ItemSeeder extends Seeder
             [
                 'title' => 'Blue Student ID Card',
                 'status' => 'lost',
+                'category' => 'id_card',
                 'reported_at' => $now->copy()->subHours(2),
                 'location' => 'Building A, Room 201',
                 'contact_info' => 'Telegram: @rupp_student',
@@ -28,6 +29,7 @@ class ItemSeeder extends Seeder
             [
                 'title' => 'Black Umbrella',
                 'status' => 'found',
+                'category' => 'clothes_accessories',
                 'reported_at' => $now->copy()->subDay(),
                 'location' => 'Library entrance',
                 'contact_info' => '012 345 678',
@@ -36,6 +38,7 @@ class ItemSeeder extends Seeder
             [
                 'title' => 'Wireless Mouse',
                 'status' => 'found',
+                'category' => 'electronic',
                 'reported_at' => $now->copy()->subDays(3),
                 'location' => 'Computer Lab 3',
                 'contact_info' => 'admin@rupp.edu.kh',

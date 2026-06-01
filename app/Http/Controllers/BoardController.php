@@ -9,17 +9,30 @@ class BoardController extends Controller
 {
     public function index(Request $request, ItemDataService $items)
     {
+        $filter = $request->query('status', 'all');
+        $category = $request->query('category', 'all');
+        $search = $request->query('search', '');
+        $date = $request->query('date', '');
+        $sort = $request->query('sort');
+
+        if ($sort === null) {
+            $sort = config('lostfound.category_default_sort.'.$category, 'desc');
+        }
+
         return view('board', [
             'items' => $items->filtered([
-                'status' => $request->query('status', 'all'),
-                'search' => $request->query('search'),
-                'date' => $request->query('date'),
-                'sort' => $request->query('sort', 'desc'),
+                'status' => $filter,
+                'category' => $category,
+                'search' => $search,
+                'date' => $date,
+                'sort' => $sort,
             ]),
-            'filter' => $request->query('status', 'all'),
-            'search' => $request->query('search', ''),
-            'date' => $request->query('date', ''),
-            'sort' => $request->query('sort', 'desc'),
+            'filter' => $filter,
+            'category' => $category,
+            'categories' => config('lostfound.categories'),
+            'search' => $search,
+            'date' => $date,
+            'sort' => $sort,
         ]);
     }
 }

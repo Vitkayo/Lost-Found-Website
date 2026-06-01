@@ -1,73 +1,86 @@
 @extends('layouts.main')
 
-@section('title', 'Community Board')
+@section('title', 'Board')
 
 @section('content')
-<div class="min-vh-100 bg-white pb-5">
-    <div class="text-white shadow-sm mb-4" style="background: #0d6efd; border-bottom: 5px solid #ffc107;">
-        <div class="container py-5 text-center">
-            <h1 class="display-5 fw-bold text-uppercase">RUPP Community Board</h1>
-            <p class="lead fw-bold mb-0">Find your belongings within the RUPP community.</p>
-        </div>
-    </div>
+@php
+    $displayItems = collect($items);
 
-    <div class="container">
-        <form method="get" action="{{ route('board.index') }}" class="row g-2 mb-4 justify-content-center px-2">
+    $boardQuery = fn (array $overrides = []) => array_filter(array_merge([
+        'status' => $filter !== 'all' ? $filter : null,
+        'category' => $category !== 'all' ? $category : null,
+        'search' => $search ?: null,
+        'date' => $date ?: null,
+        'sort' => $sort,
+    ], $overrides), fn ($v) => $v !== null && $v !== '');
+@endphp
+
+<div class="cf-page cf-board-page">
+    <section class="cf-board-hero">
+        <div class="cf-container">
+            <h1>RUPP Community Board</h1>
+            <p>Find your belongings within the RUPP community.</p>
+        </div>
+    </section>
+
+    <section class="cf-container cf-board-shell">
+        <form method="get" action="{{ route('board.index') }}" class="cf-board-search">
             <input type="hidden" name="status" value="{{ $filter }}">
+            <input type="hidden" name="category" value="{{ $category }}">
             <input type="hidden" name="sort" value="{{ $sort }}">
-            <div class="col-12 col-lg-8">
-                <div class="input-group input-group-lg shadow-sm border border-2 border-dark rounded">
-                    <span class="input-group-text bg-white border-0">🔍</span>
-                    <input type="text" name="search" value="{{ $search }}" class="form-control border-0"
-                           placeholder="Search name or location...">
-                    <button type="submit" class="btn btn-primary fw-bold px-4">Search</button>
-                </div>
-            </div>
+            <label class="cf-search-box">
+                <i class="bi bi-search"></i>
+                <input type="search" name="search" value="{{ $search }}" placeholder="Search item name or location...">
+            </label>
+            <button type="submit" class="cf-btn cf-btn-primary">Search</button>
         </form>
 
-        <div class="d-flex flex-wrap gap-3 justify-content-center mb-4 px-2">
-            @foreach(['all' => '#212529', 'lost' => '#dc3545', 'found' => '#198754'] as $type => $color)
-                @php
-                    $active = $filter === $type;
-                    $query = array_filter(['status' => $type !== 'all' ? $type : null, 'search' => $search ?: null, 'date' => $date ?: null, 'sort' => $sort]);
-                @endphp
-                <a href="{{ route('board.index', $query) }}"
-                   class="btn btn-lg px-4 py-2 fw-bold text-uppercase"
-                   style="border-radius: 12px; min-width: 115px; border: 3px solid {{ $color }};
-                          background-color: {{ $active ? $color : '#fff' }};
-                          color: {{ $active ? '#fff' : $color }};">
-                    {{ $type }}
-                </a>
+        <div class="cf-filter-row" aria-label="Status filters">
+            @foreach(['all' => 'All', 'lost' => 'Lost', 'found' => 'Found'] as $value => $label)
+                <a href="{{ route('board.index', $boardQuery(['status' => $value === 'all' ? null : $value])) }}"
+                   class="cf-filter-pill cf-filter-{{ $value }} {{ $filter === $value ? 'active' : '' }}">{{ $label }}</a>
             @endforeach
         </div>
 
-        <form method="get" class="row g-2 mb-5 justify-content-center">
+        <div class="cf-chip-row" aria-label="Category filters">
+            <a href="{{ route('board.index', $boardQuery(['category' => null])) }}"
+               class="cf-chip {{ $category === 'all' ? 'active' : '' }}">All Categories</a>
+            @foreach($categories as $slug => $label)
+                <a href="{{ route('board.index', $boardQuery(['category' => $slug])) }}"
+                   class="cf-chip {{ $category === $slug ? 'active' : '' }}">{{ $label }}</a>
+            @endforeach
+        </div>
+
+        <form method="get" class="cf-board-controls">
             <input type="hidden" name="status" value="{{ $filter }}">
+            <input type="hidden" name="category" value="{{ $category }}">
             <input type="hidden" name="search" value="{{ $search }}">
-            <div class="col-auto">
-                <input type="date" name="date" value="{{ $date }}" class="form-control border-2 border-dark" onchange="this.form.submit()">
-            </div>
-            <div class="col-auto">
-                <select name="sort" class="form-select border-2 border-dark" onchange="this.form.submit()">
+            <label>
+                <span>Date</span>
+                <input type="date" name="date" value="{{ $date }}" onchange="this.form.submit()">
+            </label>
+            <label>
+                <span>Sort</span>
+                <select name="sort" onchange="this.form.submit()">
                     <option value="desc" @selected($sort === 'desc')>Newest first</option>
                     <option value="asc" @selected($sort === 'asc')>Oldest first</option>
                 </select>
-            </div>
+            </label>
         </form>
 
-        <div class="row g-3 g-md-4 justify-content-center px-2">
-            @forelse($items as $item)
+        <div class="cf-report-grid">
+            @forelse($displayItems as $item)
                 @php $modalId = 'board-item-' . $item['id']; @endphp
-                <div class="col-6 col-md-4 col-lg-3 d-flex justify-content-center">
-                    @include('partials.item-card', ['item' => $item, 'modalId' => $modalId])
-                </div>
+                @include('partials.item-card', ['item' => $item, 'modalId' => $modalId])
                 @include('partials.item-modal', ['item' => $item, 'id' => $modalId])
             @empty
-                <div class="col-12 text-center py-5">
-                    <p class="text-muted fw-bold">No items match your filters.</p>
+                <div class="cf-empty-state">
+                    <h2>No items match your filters.</h2>
+                    <p>Try another category or report a new campus item.</p>
+                    <a href="{{ route('report.create') }}" class="cf-btn cf-btn-primary">Report Item</a>
                 </div>
             @endforelse
         </div>
-    </div>
+    </section>
 </div>
 @endsection
