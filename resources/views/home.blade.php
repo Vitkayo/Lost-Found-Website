@@ -4,12 +4,14 @@
 
 @php
     $categoryIcons = [
+        'ticket' => 'bi-ticket-perforated',
+        'bottle_umbrella' => 'bi-umbrella',
         'electronic' => 'bi-laptop',
-        'id_card' => 'bi-person-badge',
+        'id_card' => 'bi-person-vcard',
         'wallet' => 'bi-wallet2',
         'key' => 'bi-key',
-        'book' => 'bi-book',
-        'clothes_accessories' => 'bi-person-standing-dress',
+        'book' => 'bi-journal-text',
+        'clothes_accessories' => 'bi-backpack',
         'other' => 'bi-three-dots',
     ];
 @endphp
@@ -34,13 +36,13 @@
                     </form>
                     <div class="cf-popular">
                         <span>Popular:</span>
-                        <a href="{{ route('board.index', ['category' => 'key']) }}">Keys</a>
-                        <a href="{{ route('board.index', ['category' => 'other']) }}">Water Bottles</a>
-                        <a href="{{ route('board.index', ['category' => 'electronic']) }}">Laptops</a>
+                        <a href="{{ route('board.index', ['category' => 'ticket']) }}">Tickets</a>
+                        <a href="{{ route('board.index', ['category' => 'id_card']) }}">Card / ID</a>
+                        <a href="{{ route('board.index', ['category' => 'bottle_umbrella']) }}">Umbrellas</a>
                     </div>
                 </div>
                 <div class="cf-hero-art" aria-hidden="true">
-                    <img src="https://lh3.googleusercontent.com/aida/ADBb0ujSuLgywu3RFqaamjJLUh5Qh_tDi4RPKgvRND-pudgq9ydZ-L-KGULkhcAlur503DEMiIFkKG-dGGUtleFbVRjs0TKGZ3UNOcnMVn7fpZLCqa4MOjo-b7nVQofqoIjkbXvgkrLE1Oc4T87uQY5HnWMz6XOfJQ7V4dMz0W-QDTyoeo2rdn9XmRqq8Szfc1wYar-aZjY3bxLMZYDogWz5NIaRY1qTOBUxpeywr8SUmfdcuu5DfWV22WNH_g" alt="">
+                    <img src="{{ asset('assets/campus-found-hero.png') }}" alt="">
                 </div>
             </div>
         </section>
@@ -78,6 +80,42 @@
                         </div>
                     @endforelse
                 </div>
+
+                @if(!empty($recentClaims))
+                    <section class="cf-home-claimed-section" aria-labelledby="home-recent-claims-title">
+                        <div class="cf-section-head">
+                            <div>
+                                <h2 id="home-recent-claims-title">Recently Claimed</h2>
+                                <p>If an item is no longer in the recent reports, check here first.</p>
+                            </div>
+                            <a href="{{ route('claims.index') }}" class="cf-link-action">
+                                View Claimed Items <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                        <div class="cf-report-grid">
+                            @foreach($recentClaims as $claim)
+                                @php $claimItem = $claim['item'] ?? null; @endphp
+                                @if($claimItem)
+                                    @php $claimModalId = 'home-claimed-item-' . $claim['id']; @endphp
+                                    @include('partials.item-card', [
+                                        'item' => $claimItem,
+                                        'modalId' => $claimModalId,
+                                        'statusLabel' => 'Claimed',
+                                        'statusClass' => 'claimed',
+                                        'dateValue' => $claim['created_at'],
+                                        'buttonLabel' => 'View Details',
+                                    ])
+                                    @include('partials.item-modal', [
+                                        'item' => $claimItem,
+                                        'id' => $claimModalId,
+                                        'showAction' => false,
+                                        'showAdminDelete' => false,
+                                    ])
+                                @endif
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
             </div>
         </section>
 
@@ -86,7 +124,7 @@
                 <div class="cf-section-head">
                     <div>
                         <h2>Explore by Category</h2>
-                        <p>Browse through specific departments to find your belongings.</p>
+                        <p>Browse common RUPP item types to find your belongings.</p>
                     </div>
                     <a href="{{ route('board.index') }}" class="cf-link-action">
                         View All Categories <i class="bi bi-arrow-right"></i>
@@ -146,9 +184,10 @@
             <div>
                 <h3>Categories</h3>
                 <a href="{{ route('board.index', ['category' => 'electronic']) }}">Electronics</a>
-                <a href="{{ route('board.index', ['category' => 'id_card']) }}">Student ID</a>
+                <a href="{{ route('board.index', ['category' => 'ticket']) }}">Tickets</a>
+                <a href="{{ route('board.index', ['category' => 'id_card']) }}">Card / ID</a>
                 <a href="{{ route('board.index', ['category' => 'key']) }}">Keys</a>
-                <a href="{{ route('board.index', ['category' => 'book']) }}">Books</a>
+                <a href="{{ route('board.index', ['category' => 'book']) }}">Books / Documents</a>
             </div>
             <div>
                 <h3>Newsletter</h3>

@@ -4,9 +4,20 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Lost & Found') — RUPP</title>
+    <link rel="icon" type="image/png" href="{{ asset('assets/campus-found-logo-nav.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('assets/campus-found-logo-nav.png') }}">
     <link href="/assets/bootstrap-5.3.3/css/bootstrap.min.css" rel="stylesheet">
     <link href="/assets/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="/assets/lostfound.css" rel="stylesheet">
+    <link href="/assets/lostfound.css?v=20260608-1" rel="stylesheet">
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('campus-found-theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.dataset.theme = 'dark';
+            }
+        })();
+    </script>
     @stack('styles')
 </head>
 <body class="bg-white">
@@ -138,6 +149,29 @@
                 bootstrap.Modal.getOrCreateInstance(modal).show();
             }
         });
+
+        (function () {
+            const toggle = document.querySelector('[data-theme-toggle]');
+            const icon = document.querySelector('[data-theme-icon]');
+
+            if (!toggle || !icon) {
+                return;
+            }
+
+            const applyTheme = function (theme) {
+                const isDark = theme === 'dark';
+                document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+                localStorage.setItem('campus-found-theme', isDark ? 'dark' : 'light');
+                icon.className = isDark ? 'bi bi-sun' : 'bi bi-moon-stars';
+                toggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+            };
+
+            applyTheme(document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light');
+
+            toggle.addEventListener('click', function () {
+                applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+            });
+        })();
     </script>
     @stack('scripts')
 </body>

@@ -5,7 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Admin Dashboard — Lost & Found</title>
     <link href="/assets/bootstrap-5.3.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/assets/lostfound.css" rel="stylesheet">
+    <link href="/assets/lostfound.css?v=20260608-1" rel="stylesheet">
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('campus-found-theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.dataset.theme = 'dark';
+            }
+        })();
+    </script>
 </head>
 <body class="bg-light admin-shell">
     @include('admin.partials.sidebar')

@@ -16,7 +16,7 @@
             @csrf
             <label>
                 <span>Item Name</span>
-                <input type="text" name="title" value="{{ old('title') }}" placeholder="Ex: MacBook Air M2" required>
+                <input type="text" name="title" value="{{ old('title') }}" placeholder="Ex: Exam ticket, Card ID, blue umbrella" required>
                 @error('title')<small class="cf-error">{{ $message }}</small>@enderror
             </label>
 
@@ -46,7 +46,8 @@
 
             <label>
                 <span>Location</span>
-                <input type="text" name="location" value="{{ old('location') }}" placeholder="Ex: Main Library, 2nd floor" required>
+                <input type="text" name="location" value="{{ old('location') }}" placeholder="Ex: Building A, 2nd floor, near Room 203" required>
+                <small class="cf-field-help">Use the most specific RUPP place you remember.</small>
             </label>
 
             <label>
@@ -57,6 +58,7 @@
             <label>
                 <span>Description</span>
                 <textarea name="description" rows="4" placeholder="Color, brand, unique marks, or where it was last seen...">{{ old('description') }}</textarea>
+                <small class="cf-field-help">Mention color, name, ticket detail, card type, sticker, or anything unique.</small>
             </label>
 
             <label>

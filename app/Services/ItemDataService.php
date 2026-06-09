@@ -76,8 +76,14 @@ class ItemDataService
         if (! empty($filters['search'])) {
             $term = $filters['search'];
             $matchingCategories = collect(config('lostfound.categories'))
-                ->filter(fn (string $label, string $slug) => str_contains(strtolower($label), strtolower($term))
-                    || str_contains(strtolower(str_replace('_', ' ', $slug)), strtolower($term)))
+                ->filter(function (string $label, string $slug) use ($term) {
+                    $normalizedTerm = strtolower($term);
+                    $aliases = config("lostfound.category_search_aliases.{$slug}", []);
+
+                    return str_contains(strtolower($label), $normalizedTerm)
+                        || str_contains(strtolower(str_replace('_', ' ', $slug)), $normalizedTerm)
+                        || collect($aliases)->contains(fn (string $alias) => str_contains($alias, $normalizedTerm));
+                })
                 ->keys()
                 ->all();
 

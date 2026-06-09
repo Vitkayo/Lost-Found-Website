@@ -1,8 +1,29 @@
-@props(['item', 'modalId' => null])
+@props([
+    'item',
+    'modalId' => null,
+    'statusLabel' => null,
+    'statusClass' => null,
+    'dateValue' => null,
+    'buttonLabel' => 'Details',
+])
 
 @php
     $hasImage = !empty($item['has_image']) && !empty($item['image_url']);
-    $dateLabel = \Illuminate\Support\Carbon::parse($item['created_at'])->diffForHumans();
+    $dateLabel = \Illuminate\Support\Carbon::parse($dateValue ?? $item['created_at'])->diffForHumans();
+    $displayStatusLabel = $statusLabel ?? ucfirst($item['status']);
+    $displayStatusClass = $statusClass ?? $item['status'];
+    $categoryIcons = [
+        'ticket' => 'bi-ticket-perforated',
+        'id_card' => 'bi-person-vcard',
+        'bottle_umbrella' => 'bi-umbrella',
+        'electronic' => 'bi-laptop',
+        'wallet' => 'bi-wallet2',
+        'key' => 'bi-key',
+        'book' => 'bi-journal-text',
+        'clothes_accessories' => 'bi-backpack',
+        'other' => 'bi-box-seam',
+    ];
+    $placeholderIcon = $categoryIcons[$item['category'] ?? 'other'] ?? 'bi-box-seam';
 @endphp
 
 <article class="cf-report-card"
@@ -17,11 +38,11 @@
         @if($hasImage)
             <img src="{{ $item['image_url'] }}" alt="{{ $item['title'] }}">
         @else
-            <div class="cf-card-placeholder">
-                <i class="bi bi-image"></i>
+            <div class="cf-card-placeholder cf-card-placeholder-{{ $item['category'] ?? 'other' }}">
+                <i class="bi {{ $placeholderIcon }}"></i>
             </div>
         @endif
-        <span class="cf-status cf-status-{{ $item['status'] }}">{{ ucfirst($item['status']) }}</span>
+        <span class="cf-status cf-status-{{ $displayStatusClass }}">{{ $displayStatusLabel }}</span>
     </div>
     <div class="cf-report-body">
         <div class="cf-card-topline">{{ $item['category_label'] ?? 'Other' }}</div>
@@ -30,7 +51,7 @@
         <p><i class="bi bi-calendar3"></i>{{ $dateLabel }}</p>
         @if($modalId)
             <button type="button" class="cf-btn cf-btn-outline mt-auto" data-cf-card-button data-bs-toggle="modal" data-bs-target="#{{ $modalId }}">
-                Details
+                {{ $buttonLabel }}
             </button>
         @else
             <a href="{{ route('board.index') }}" class="cf-btn cf-btn-outline mt-auto">View</a>

@@ -14,7 +14,7 @@ class ClaimDataService
         $claim = ItemClaim::create([
             'item_id' => $item->id,
             'type' => $type,
-            'status' => 'pending',
+            'status' => 'approved',
             'claimant_name' => $data['claimant_name'] ?? null,
             'contact_info' => $data['contact_info'],
             'message' => $data['message'] ?? null,
@@ -23,6 +23,18 @@ class ClaimDataService
         $claim->load('item');
 
         return $claim->toDisplayArray();
+    }
+
+    public function recent(int $limit = 4): array
+    {
+        return ItemClaim::query()
+            ->with('item')
+            ->where('status', 'approved')
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get()
+            ->map(fn (ItemClaim $claim) => $claim->toDisplayArray())
+            ->all();
     }
 
     public function filtered(array $filters = []): array

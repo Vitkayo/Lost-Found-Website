@@ -79,8 +79,8 @@
                                 <input type="text" name="contact_info" placeholder="Phone or Telegram" required>
                             </label>
                             <label>
-                                <span>{{ $isFound ? 'Message/proof' : 'Message/location found' }} <strong>*</strong></span>
-                                <textarea name="message" rows="3" placeholder="{{ $isFound ? 'Describe how you can prove ownership...' : 'Where/when you found it...' }}" required></textarea>
+                                <span>{{ $isFound ? 'Message/proof' : 'Message/location found' }} <small>optional</small></span>
+                                <textarea name="message" rows="3" placeholder="{{ $isFound ? 'Describe how you can prove ownership...' : 'Where/when you found it...' }}"></textarea>
                             </label>
                             <button type="submit" class="cf-btn cf-btn-primary">
                                 {{ $isFound ? 'Submit Claim' : 'Submit Found Report' }}

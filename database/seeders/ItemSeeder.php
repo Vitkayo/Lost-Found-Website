@@ -18,7 +18,7 @@ class ItemSeeder extends Seeder
 
         $samples = [
             [
-                'title' => 'Blue Student ID Card',
+                'title' => 'Blue Card ID',
                 'status' => 'lost',
                 'category' => 'id_card',
                 'reported_at' => $now->copy()->subHours(2),
@@ -29,11 +29,20 @@ class ItemSeeder extends Seeder
             [
                 'title' => 'Black Umbrella',
                 'status' => 'found',
-                'category' => 'clothes_accessories',
+                'category' => 'bottle_umbrella',
                 'reported_at' => $now->copy()->subDay(),
                 'location' => 'Library entrance',
                 'contact_info' => '012 345 678',
                 'description' => 'Compact foldable umbrella.',
+            ],
+            [
+                'title' => 'Entrance Exam Ticket',
+                'status' => 'found',
+                'category' => 'ticket',
+                'reported_at' => $now->copy()->subHours(3),
+                'location' => 'Building A lobby',
+                'contact_info' => 'Telegram: @rupp_found',
+                'description' => 'Printed exam ticket found near the stairs.',
             ],
             [
                 'title' => 'Wireless Mouse',

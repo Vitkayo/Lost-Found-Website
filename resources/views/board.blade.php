@@ -30,16 +30,21 @@
             <input type="hidden" name="sort" value="{{ $sort }}">
             <label class="cf-search-box">
                 <i class="bi bi-search"></i>
-                <input type="search" name="search" value="{{ $search }}" placeholder="Search item name or location...">
+                <input type="search" name="search" value="{{ $search }}" placeholder="Search item, category, or location...">
             </label>
             <button type="submit" class="cf-btn cf-btn-primary">Search</button>
         </form>
 
-        <div class="cf-filter-row" aria-label="Status filters">
-            @foreach(['all' => 'All', 'lost' => 'Lost', 'found' => 'Found'] as $value => $label)
-                <a href="{{ route('board.index', $boardQuery(['status' => $value === 'all' ? null : $value])) }}"
-                   class="cf-filter-pill cf-filter-{{ $value }} {{ $filter === $value ? 'active' : '' }}">{{ $label }}</a>
-            @endforeach
+        <div class="cf-board-status-row">
+            <div class="cf-filter-row" aria-label="Status filters">
+                @foreach(['all' => 'All', 'lost' => 'Lost', 'found' => 'Found'] as $value => $label)
+                    <a href="{{ route('board.index', $boardQuery(['status' => $value === 'all' ? null : $value])) }}"
+                       class="cf-filter-pill cf-filter-{{ $value }} {{ $filter === $value ? 'active' : '' }}">{{ $label }}</a>
+                @endforeach
+            </div>
+            <a href="{{ route('claims.index') }}" class="cf-recent-claims-link">
+                Recently Claimed <i class="bi bi-arrow-right"></i>
+            </a>
         </div>
 
         <div class="cf-chip-row" aria-label="Category filters">

@@ -3,7 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Item;
+use App\Models\ItemClaim;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class LostFoundWebTest extends TestCase
@@ -32,6 +35,26 @@ class LostFoundWebTest extends TestCase
         ])->assertRedirect(route('board.index'));
 
         $this->assertDatabaseHas('items', ['title' => 'Test Keys', 'category' => 'key']);
+    }
+
+    public function test_api_item_create_and_list(): void
+    {
+        $this->postJson('/api/items', [
+            'title' => 'API Water Bottle',
+            'status' => 'found',
+            'category' => 'bottle_umbrella',
+            'created_at' => now()->format('Y-m-d\TH:i'),
+            'location' => 'Cafeteria',
+            'contact_info' => 'telegram @student',
+            'description' => 'Metal bottle with RUPP sticker',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.title', 'API Water Bottle')
+            ->assertJsonPath('data.category', 'bottle_umbrella');
+
+        $this->getJson('/api/items?status=all&sort=desc')
+            ->assertOk()
+            ->assertJsonFragment(['title' => 'API Water Bottle']);
     }
 
     public function test_board_category_filter(): void
@@ -118,13 +141,13 @@ class LostFoundWebTest extends TestCase
             'item_id' => $item->id,
             'claimant_name' => 'Davit',
             'contact_info' => '099888777',
-            'message' => 'It is mine, has my ID inside.',
         ])->assertRedirect(route('claims.index', ['type' => 'claim']));
 
         $this->assertDatabaseHas('item_claims', [
             'item_id' => $item->id,
             'type' => 'claim',
             'contact_info' => '099888777',
+            'message' => null,
         ]);
 
         $this->get('/claims?type=claim')
@@ -136,7 +159,67 @@ class LostFoundWebTest extends TestCase
 
         $this->get('/board')
             ->assertOk()
-            ->assertDontSee('Found Wallet');
+            ->assertSee('Recently Claimed');
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Recently Claimed')
+            ->assertSee('Found Wallet');
+    }
+
+    public function test_api_claim_create_list_show_update_and_delete(): void
+    {
+        $item = Item::create([
+            'title' => 'Found Calculator',
+            'status' => 'found',
+            'category' => 'electronic',
+            'reported_at' => now(),
+            'location' => 'Library',
+            'contact_info' => '012111222',
+            'description' => 'Casio scientific calculator',
+        ]);
+
+        $this->postJson('/api/claims', [
+            'item_id' => $item->id,
+            'claimant_name' => 'Sophea',
+            'contact_info' => '099123456',
+            'message' => 'I can identify the sticker on the back.',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.type', 'claim')
+            ->assertJsonPath('data.status', 'approved')
+            ->assertJsonPath('data.claimant_name', 'Sophea')
+            ->assertJsonPath('data.item.title', 'Found Calculator');
+
+        $claim = ItemClaim::firstOrFail();
+
+        $this->getJson('/api/claims?type=claim&status=approved')
+            ->assertOk()
+            ->assertJsonFragment(['claimant_name' => 'Sophea']);
+
+        $this->getJson("/api/claims/{$claim->id}")
+            ->assertOk()
+            ->assertJsonPath('data.id', (string) $claim->id)
+            ->assertJsonPath('data.item.title', 'Found Calculator');
+
+        Sanctum::actingAs(User::factory()->create());
+
+        $this->patchJson("/api/claims/{$claim->id}/status", [
+            'status' => 'approved',
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'approved');
+
+        $this->assertDatabaseHas('item_claims', [
+            'id' => $claim->id,
+            'status' => 'approved',
+        ]);
+
+        $this->deleteJson("/api/claims/{$claim->id}")
+            ->assertOk()
+            ->assertJsonPath('message', 'Claim deleted successfully');
+
+        $this->assertDatabaseMissing('item_claims', ['id' => $claim->id]);
     }
 
     public function test_found_report_on_lost_item(): void
@@ -171,7 +254,12 @@ class LostFoundWebTest extends TestCase
 
         $this->get('/board')
             ->assertOk()
-            ->assertDontSee('Lost Phone');
+            ->assertSee('Recently Claimed');
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Recently Claimed')
+            ->assertSee('Lost Phone');
     }
 
     public function test_admin_can_delete_claim_from_claims_page(): void

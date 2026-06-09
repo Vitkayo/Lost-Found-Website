@@ -32,7 +32,7 @@ class ClaimController extends Controller
             'item_id' => ['required', 'exists:items,id'],
             'claimant_name' => ['nullable', 'string', 'max:255'],
             'contact_info' => ['required', 'string', 'max:255'],
-            'message' => ['required', 'string', 'max:1000'],
+            'message' => ['nullable', 'string', 'max:1000'],
         ]);
 
         $item = Item::findOrFail($validated['item_id']);

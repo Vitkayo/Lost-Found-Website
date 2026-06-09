@@ -15,6 +15,9 @@
             </nav>
         </div>
         <div class="cf-nav-actions">
+            <button type="button" class="cf-theme-toggle" data-theme-toggle aria-label="Switch to dark mode" title="Toggle dark mode">
+                <i class="bi bi-moon-stars" data-theme-icon></i>
+            </button>
             <a href="{{ route('report.create') }}" class="cf-btn cf-btn-primary cf-nav-report {{ request()->routeIs('report.*') ? 'active' : '' }}">+ Report</a>
             @if (session('is_admin'))
                 <a href="{{ route('admin.dashboard') }}" class="cf-btn cf-btn-outline cf-nav-admin">Dashboard</a>
