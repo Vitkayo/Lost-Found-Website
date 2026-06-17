@@ -1,7 +1,6 @@
 <?php
 
 return [
-    'admin_password' => env('LOSTFOUND_ADMIN_PASSWORD'),
     'items_file' => storage_path('app/items.json'),
 
     'categories' => [

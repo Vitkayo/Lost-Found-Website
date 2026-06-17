@@ -19,8 +19,25 @@
                 <label><span>Phone <small>optional</small></span><input type="text" name="phone" value="{{ old('phone') }}"></label>
                 <label><span>Student ID <small>optional</small></span><input type="text" name="student_id" value="{{ old('student_id') }}"></label>
             </div>
-            <label><span>Password</span><input type="password" name="password" required>@error('password')<small class="cf-error">{{ $message }}</small>@enderror</label>
-            <label><span>Confirm Password</span><input type="password" name="password_confirmation" required></label>
+            <label>
+                <span>Password</span>
+                <div class="cf-password-field">
+                    <input type="password" name="password" required>
+                    <button type="button" class="cf-password-toggle" data-password-toggle aria-label="Show password">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+                @error('password')<small class="cf-error">{{ $message }}</small>@enderror
+            </label>
+            <label>
+                <span>Confirm Password</span>
+                <div class="cf-password-field">
+                    <input type="password" name="password_confirmation" required>
+                    <button type="button" class="cf-password-toggle" data-password-toggle aria-label="Show password confirmation">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+            </label>
             <button class="cf-btn cf-btn-primary" type="submit">Create Account</button>
             <p class="cf-auth-switch">Already registered? <a href="{{ route('login') }}">Log in</a></p>
         </form>

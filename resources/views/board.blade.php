@@ -4,8 +4,6 @@
 
 @section('content')
 @php
-    $displayItems = collect($items);
-
     $boardQuery = fn (array $overrides = []) => array_filter(array_merge([
         'status' => $filter !== 'all' ? $filter : null,
         'category' => $category !== 'all' ? $category : null,
@@ -74,7 +72,7 @@
         </form>
 
         <div class="cf-report-grid">
-            @forelse($displayItems as $item)
+            @forelse($items as $item)
                 @php $modalId = 'board-item-' . $item['id']; @endphp
                 @include('partials.item-card', ['item' => $item, 'modalId' => $modalId])
                 @include('partials.item-modal', ['item' => $item, 'id' => $modalId])
@@ -85,6 +83,9 @@
                     <a href="{{ route('report.create') }}" class="cf-btn cf-btn-primary">Report Item</a>
                 </div>
             @endforelse
+        </div>
+        <div class="mt-4">
+            {{ $items->withQueryString()->links() }}
         </div>
     </section>
 </div>

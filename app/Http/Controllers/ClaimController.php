@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\ItemClaim;
-use App\Services\ClaimDataService;
 use App\Services\AuditService;
+use App\Services\ClaimDataService;
 use Illuminate\Http\Request;
 
 class ClaimController extends Controller
@@ -17,11 +17,11 @@ class ClaimController extends Controller
         $sort = $request->query('sort', 'desc');
 
         return view('claims.index', [
-            'claims' => $claims->filtered([
+            'claims' => $claims->paginated([
                 'type' => $filter,
                 'search' => $search,
                 'sort' => $sort,
-            ]),
+            ], 12),
             'filter' => $filter,
             'search' => $search,
             'sort' => $sort,

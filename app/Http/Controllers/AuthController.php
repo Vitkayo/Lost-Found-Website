@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\EmailCodeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -19,7 +20,7 @@ class AuthController extends Controller
         return view('auth.register');
     }
 
-    public function register(Request $request)
+    public function register(Request $request, EmailCodeService $codes)
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
@@ -32,12 +33,15 @@ class AuthController extends Controller
         $user = User::create([
             ...$validated,
             'password' => Hash::make($validated['password']),
+            'role' => 'user',
+            'status' => 'active',
         ]);
 
         Auth::login($user);
         $request->session()->regenerate();
+        $codes->send($user, EmailCodeService::VERIFY_EMAIL);
 
-        return redirect()->route('home')->with('success', 'Account created successfully.');
+        return redirect()->route('verification.notice')->with('success', 'Account created. Check your email for a verification code.');
     }
 
     public function login(Request $request)
@@ -58,6 +62,10 @@ class AuthController extends Controller
             $request->session()->invalidate();
 
             return back()->withErrors(['email' => 'This account is suspended.'])->onlyInput('email');
+        }
+
+        if (! $request->user()->isAdmin() && ! $request->user()->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice')->with('success', 'Welcome back. Please verify your email to continue.');
         }
 
         return redirect()->intended(route('home'))->with('success', 'Welcome back.');

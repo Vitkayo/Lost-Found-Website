@@ -4,16 +4,15 @@ namespace App\Notifications;
 
 use App\Models\ItemClaim;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class ClaimSubmittedNotification extends Notification
+class ClaimSubmittedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(private readonly ItemClaim $claim)
-    {
-    }
+    public function __construct(private readonly ItemClaim $claim) {}
 
     public function via(object $notifiable): array
     {

@@ -20,7 +20,7 @@
                 <a href="{{ request()->routeIs('home') ? '#how-it-works' : route('home').'#how-it-works' }}"><i class="bi bi-info-circle" aria-hidden="true"></i><span>About</span></a>
             </nav>
             <div class="cf-nav-actions">
-                @if (session('is_admin'))
+                @if (auth()->user()?->isAdmin())
                     <a href="{{ route('admin.dashboard') }}" class="cf-btn cf-btn-outline cf-nav-admin">Dashboard</a>
                     <form method="post" action="{{ route('admin.logout') }}" class="cf-nav-logout">
                         @csrf

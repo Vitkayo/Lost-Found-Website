@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Item;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -11,9 +12,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ItemDataService
 {
-    public function __construct(private readonly ImageOptimizationService $images)
-    {
-    }
+    public function __construct(private readonly ImageOptimizationService $images) {}
 
     public function all(): array
     {
@@ -66,55 +65,20 @@ class ItemDataService
 
     public function filtered(array $filters = []): array
     {
-        $query = ! empty($filters['include_claimed'])
-            ? Item::query()
-            : $this->openItemsQuery();
-
-        if (! empty($filters['status']) && $filters['status'] !== 'all') {
-            $query->where('status', $filters['status']);
-        }
-
-        if (! empty($filters['category']) && $filters['category'] !== 'all') {
-            $query->where('category', $filters['category']);
-        }
-
-        if (! empty($filters['search'])) {
-            $term = $filters['search'];
-            $matchingCategories = collect(config('lostfound.categories'))
-                ->filter(function (string $label, string $slug) use ($term) {
-                    $normalizedTerm = strtolower($term);
-                    $aliases = config("lostfound.category_search_aliases.{$slug}", []);
-
-                    return str_contains(strtolower($label), $normalizedTerm)
-                        || str_contains(strtolower(str_replace('_', ' ', $slug)), $normalizedTerm)
-                        || collect($aliases)->contains(fn (string $alias) => str_contains($alias, $normalizedTerm));
-                })
-                ->keys()
-                ->all();
-
-            $query->where(function ($q) use ($term, $matchingCategories) {
-                $q->where('title', 'like', "%{$term}%")
-                    ->orWhere('location', 'like', "%{$term}%")
-                    ->orWhere('description', 'like', "%{$term}%")
-                    ->orWhere('category', 'like', "%{$term}%");
-
-                if ($matchingCategories) {
-                    $q->orWhereIn('category', $matchingCategories);
-                }
-            });
-        }
-
-        if (! empty($filters['date'])) {
-            $query->whereDate('reported_at', $filters['date']);
-        }
-
-        $direction = ($filters['sort'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
-
-        return $query
-            ->orderBy('reported_at', $direction)
+        return $this->filteredQuery($filters)
             ->get()
             ->map(fn (Item $item) => $item->toLegacyArray())
             ->all();
+    }
+
+    public function paginated(array $filters = [], int $perPage = 12, string $pageName = 'page'): LengthAwarePaginator
+    {
+        $paginator = $this->filteredQuery($filters)->paginate($perPage, ['*'], $pageName);
+        $paginator->setCollection(
+            $paginator->getCollection()->map(fn (Item $item) => $item->toLegacyArray())
+        );
+
+        return $paginator;
     }
 
     public function create(array $data, ?UploadedFile $image = null, ?int $userId = null): array
@@ -201,5 +165,54 @@ class ItemDataService
                 'claims',
                 fn ($query) => $query->where('status', 'approved')
             );
+    }
+
+    private function filteredQuery(array $filters = [])
+    {
+        $query = ! empty($filters['include_claimed'])
+            ? Item::query()
+            : $this->openItemsQuery();
+
+        if (! empty($filters['status']) && $filters['status'] !== 'all') {
+            $query->where('status', $filters['status']);
+        }
+
+        if (! empty($filters['category']) && $filters['category'] !== 'all') {
+            $query->where('category', $filters['category']);
+        }
+
+        if (! empty($filters['search'])) {
+            $term = $filters['search'];
+            $matchingCategories = collect(config('lostfound.categories'))
+                ->filter(function (string $label, string $slug) use ($term) {
+                    $normalizedTerm = strtolower($term);
+                    $aliases = config("lostfound.category_search_aliases.{$slug}", []);
+
+                    return str_contains(strtolower($label), $normalizedTerm)
+                        || str_contains(strtolower(str_replace('_', ' ', $slug)), $normalizedTerm)
+                        || collect($aliases)->contains(fn (string $alias) => str_contains($alias, $normalizedTerm));
+                })
+                ->keys()
+                ->all();
+
+            $query->where(function ($q) use ($term, $matchingCategories) {
+                $q->where('title', 'like', "%{$term}%")
+                    ->orWhere('location', 'like', "%{$term}%")
+                    ->orWhere('description', 'like', "%{$term}%")
+                    ->orWhere('category', 'like', "%{$term}%");
+
+                if ($matchingCategories) {
+                    $q->orWhereIn('category', $matchingCategories);
+                }
+            });
+        }
+
+        if (! empty($filters['date'])) {
+            $query->whereDate('reported_at', $filters['date']);
+        }
+
+        $direction = ($filters['sort'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
+
+        return $query->orderBy('reported_at', $direction);
     }
 }

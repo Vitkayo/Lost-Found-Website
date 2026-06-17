@@ -8,7 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class ClaimReviewedNotification extends Notification implements ShouldQueue
+class ClaimDisputeResolvedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -21,13 +21,13 @@ class ClaimReviewedNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $approved = $this->claim->status === 'approved';
+        $label = $this->claim->dispute_status === 'resolved' ? 'reopened for review' : 'closed';
 
         return (new MailMessage)
-            ->subject('Your Campus Found claim was '.($approved ? 'approved' : 'reviewed'))
+            ->subject('Your Campus Found dispute was updated')
             ->greeting('Hello '.$notifiable->name.',')
-            ->line('Your claim for '.$this->claim->item->title.' was '.$this->claim->status.'.')
-            ->when($approved, fn (MailMessage $mail) => $mail->line('Open your dashboard to continue coordinating with the reporter.'))
+            ->line('Your dispute for "'.($this->claim->item?->title ?? 'a campus item').'" was '.$label.'.')
+            ->line('Current claim status: '.ucfirst($this->claim->status ?? 'pending').'.')
             ->action('View my claims', route('account.show').'#my-claims');
     }
 }

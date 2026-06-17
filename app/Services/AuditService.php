@@ -11,7 +11,7 @@ class AuditService
     {
         AuditLog::create([
             'user_id' => auth()->id(),
-            'actor' => auth()->user()?->email ?? (session('is_admin') ? 'staff-admin' : 'system'),
+            'actor' => auth()->user()?->email ?? 'system',
             'action' => $action,
             'subject_type' => $subject ? class_basename($subject) : null,
             'subject_id' => $subject?->getKey(),

@@ -16,6 +16,9 @@ Campus Found is a responsive lost-and-found management system for campus communi
 - Public home page and community board
 - Search, status filters, category filters, date filter, and sorting
 - User registration, login, logout, and account dashboard
+- User dashboard API for reports, claims, and account statistics
+- Email verification for new user accounts
+- Password reset by email code
 - User-owned report creation, editing, and deletion
 - Lost/found report image upload and optimization
 - Claim submission with ownership verification answers
@@ -60,14 +63,26 @@ Open the website at:
 http://127.0.0.1:8000
 ```
 
+For local email testing, use the log mailer:
+
+```env
+MAIL_MAILER=log
+```
+
+If you use queued email locally, keep a second terminal running:
+
+```bash
+php artisan queue:work
+```
+
 ## Admin Access
 
 This project does not store a real administrator account or password in source code.
 
-For the current local admin-key flow, set a unique value in your local `.env`:
+Create the first super administrator from your own terminal:
 
-```env
-LOSTFOUND_ADMIN_PASSWORD=replace-with-your-own-local-password
+```bash
+php artisan lostfound:create-super-admin
 ```
 
 Admin URL:
@@ -77,6 +92,15 @@ http://127.0.0.1:8000/admin/login
 ```
 
 Do not commit `.env`, real admin passwords, database passwords, API keys, exported database files, or local SQLite databases.
+
+Public registration always creates normal user accounts. Administrator roles must be assigned by a super administrator inside the protected admin dashboard.
+
+Role rules:
+
+- `user`: can report items and submit claims.
+- `admin`: can moderate reports, claims, and disputes.
+- `super_admin`: can manage users, roles, and account status.
+- The final active super administrator cannot be demoted or suspended.
 
 ## Testing
 
@@ -95,7 +119,31 @@ vendor/bin/pint --test
 Current verified result:
 
 ```text
-25 tests, 173 assertions
+31 tests, 216 assertions
+```
+
+## Email Setup
+
+Campus Found supports email verification, password reset codes, and claim notifications. This project now uses standard SMTP so you can connect it to MailerSend and keep Resend for another project.
+
+```env
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mailersend.net
+MAIL_PORT=587
+MAIL_USERNAME=your_mailersend_smtp_username
+MAIL_PASSWORD=your_mailersend_smtp_password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS="noreply@campusfound.me"
+MAIL_FROM_NAME="${APP_NAME}"
+QUEUE_CONNECTION=database
+```
+
+In MailerSend, verify the sending domain `campusfound.me`, then generate an SMTP user for that domain and place the username and password in your `.env`.
+
+Because emails are queued, production needs a running worker:
+
+```bash
+php artisan queue:work --tries=3
 ```
 
 ## Postman
@@ -113,6 +161,9 @@ Before running requests, fill the collection variables locally:
 - `password`
 - `owner_token`
 - `claimant_token`
+- `verification_code`
+- `reset_email`
+- `reset_code`
 
 The collection does not include real login credentials.
 
@@ -136,6 +187,6 @@ The collection does not include real login credentials.
 - Run `php artisan migrate --force`.
 - Run `php artisan storage:link`.
 - Run `php artisan optimize`.
-- Configure queue workers if email notifications are enabled.
+- Configure a queue worker for verification, password reset, and claim notification emails.
 - Configure persistent storage or object storage for uploaded images.
 - Enable HTTPS and rotate any exposed credentials before deployment.

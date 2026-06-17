@@ -42,7 +42,7 @@ class ItemClaim extends Model
     {
         $item = $this->item;
         $userId = auth()->id();
-        $canViewPrivate = session('is_admin')
+        $canViewPrivate = auth()->user()?->isAdmin()
             || ($userId && (
                 (int) $userId === (int) $this->user_id
                 || (int) $userId === (int) $item?->user_id

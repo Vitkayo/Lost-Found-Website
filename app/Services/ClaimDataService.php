@@ -7,21 +7,19 @@ use App\Models\ItemClaim;
 use App\Notifications\ClaimReviewedNotification;
 use App\Notifications\ClaimSubmittedNotification;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 
 class ClaimDataService
 {
-    public function __construct(private readonly ImageOptimizationService $images)
-    {
-    }
+    public function __construct(private readonly ImageOptimizationService $images) {}
 
     public function create(
         Item $item,
         array $data,
         ?int $userId = null,
         ?UploadedFile $proofImage = null
-    ): array
-    {
+    ): array {
         $type = $item->status === 'found' ? 'claim' : 'found';
         [, $proofImagePath] = $this->images->store($proofImage, 'claim-proofs');
         $ownershipProof = $data['ownership_proof']
@@ -75,9 +73,43 @@ class ClaimDataService
 
     public function filtered(array $filters = []): array
     {
+        return $this->filteredQuery($filters)
+            ->get()
+            ->map(fn (ItemClaim $claim) => $claim->toDisplayArray())
+            ->all();
+    }
+
+    public function paginated(array $filters = [], int $perPage = 12, string $pageName = 'page'): LengthAwarePaginator
+    {
+        $paginator = $this->filteredQuery($filters)->paginate($perPage, ['*'], $pageName);
+        $paginator->setCollection(
+            $paginator->getCollection()->map(fn (ItemClaim $claim) => $claim->toDisplayArray())
+        );
+
+        return $paginator;
+    }
+
+    public function delete(string $id): bool
+    {
+        $claim = ItemClaim::find($id);
+        if (! $claim) {
+            return false;
+        }
+
+        if ($claim->proof_image_path) {
+            Storage::disk('public')->delete($claim->proof_image_path);
+        }
+
+        $claim->delete();
+
+        return true;
+    }
+
+    private function filteredQuery(array $filters = [])
+    {
         $query = ItemClaim::query()->with('item');
 
-        if (! session('is_admin')) {
+        if (! auth()->user()?->isAdmin()) {
             $userId = auth()->id();
             $query->where(function ($visibility) use ($userId) {
                 $visibility->where('status', 'approved');
@@ -121,26 +153,6 @@ class ClaimDataService
 
         $direction = ($filters['sort'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
 
-        return $query
-            ->orderBy('created_at', $direction)
-            ->get()
-            ->map(fn (ItemClaim $claim) => $claim->toDisplayArray())
-            ->all();
-    }
-
-    public function delete(string $id): bool
-    {
-        $claim = ItemClaim::find($id);
-        if (! $claim) {
-            return false;
-        }
-
-        if ($claim->proof_image_path) {
-            Storage::disk('public')->delete($claim->proof_image_path);
-        }
-
-        $claim->delete();
-
-        return true;
+        return $query->orderBy('created_at', $direction);
     }
 }

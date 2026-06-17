@@ -3,12 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AdminAuthController extends Controller
 {
     public function create()
     {
-        if (session('is_admin') === true) {
+        if (auth()->user()?->isAdmin() === true && auth()->user()?->status === 'active') {
             return redirect()->route('admin.dashboard');
         }
 
@@ -17,24 +18,37 @@ class AdminAuthController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
             'password' => ['required', 'string'],
         ]);
 
-        $adminPassword = config('lostfound.admin_password');
-
-        if (! is_string($adminPassword) || $adminPassword === '' || ! hash_equals($adminPassword, $request->password)) {
-            return back()->withErrors(['password' => 'Access Denied: Invalid Admin Key']);
+        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+            return back()
+                ->withErrors(['email' => 'The email or password is incorrect.'])
+                ->onlyInput('email');
         }
 
-        $request->session()->put('is_admin', true);
+        $request->session()->regenerate();
+
+        $user = $request->user();
+
+        if (! $user?->isAdmin() || $user->status !== 'active') {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return back()
+                ->withErrors(['email' => 'This account does not have administrator access.'])
+                ->onlyInput('email');
+        }
 
         return redirect()->route('admin.dashboard');
     }
 
     public function destroy(Request $request)
     {
-        $request->session()->forget('is_admin');
+        Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

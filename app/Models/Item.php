@@ -90,6 +90,10 @@ class Item extends Model
 
     private function canManageCurrentUser(): bool
     {
-        return auth()->check() && (int) auth()->id() === (int) $this->user_id;
+        return auth()->check()
+            && (
+                auth()->user()?->isAdmin()
+                || (int) auth()->id() === (int) $this->user_id
+            );
     }
 }

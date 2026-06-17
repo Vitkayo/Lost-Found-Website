@@ -92,7 +92,7 @@
                         </button>
                     @endif
 
-                    @if (session('is_admin'))
+                    @if (auth()->user()?->isAdmin())
                         <form method="post" action="{{ route('admin.claims.destroy', $claim['id']) }}" class="mt-2"
                               onsubmit="return confirm('Delete this claim permanently?')">
                             @csrf
@@ -116,6 +116,9 @@
                     <a href="{{ route('board.index') }}" class="cf-btn cf-btn-primary">Go to Board</a>
                 </div>
             @endforelse
+        </div>
+        <div class="mt-4">
+            {{ $claims->withQueryString()->links() }}
         </div>
     </section>
 </div>

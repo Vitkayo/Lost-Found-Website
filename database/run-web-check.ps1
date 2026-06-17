@@ -77,11 +77,15 @@ try {
     Add-Result "Admin: wrong password rejected" ($bad.Content -match 'Invalid|denied|error|Access' -or $bad.StatusCode -eq 302) ""
     $loginPage2 = Invoke-WebRequest "$base/admin/login" -WebSession $s -UseBasicParsing
     $token2 = Get-Token $loginPage2.Content
-    $adminPassword = $env:LOSTFOUND_ADMIN_PASSWORD
-    if (-not $adminPassword) {
-        $adminPassword = Read-Host "LOSTFOUND_ADMIN_PASSWORD"
+    $adminEmail = $env:CAMPUSFOUND_CHECK_ADMIN_EMAIL
+    $adminPassword = $env:CAMPUSFOUND_CHECK_ADMIN_PASSWORD
+    if (-not $adminEmail) {
+        $adminEmail = Read-Host "CAMPUSFOUND_CHECK_ADMIN_EMAIL"
     }
-    Invoke-WebRequest "$base/admin/login" -Method POST -WebSession $s -UseBasicParsing -Body @{ _token = $token2; password = $adminPassword } | Out-Null
+    if (-not $adminPassword) {
+        $adminPassword = Read-Host "CAMPUSFOUND_CHECK_ADMIN_PASSWORD"
+    }
+    Invoke-WebRequest "$base/admin/login" -Method POST -WebSession $s -UseBasicParsing -Body @{ _token = $token2; email = $adminEmail; password = $adminPassword } | Out-Null
     $dash = Invoke-WebRequest "$base/admin/dashboard" -WebSession $s -UseBasicParsing
     Add-Result "GET /admin/dashboard" ($dash.StatusCode -eq 200) ""
     Add-Result "Dashboard: stats cards" ($dash.Content -match 'Total Reports') ""

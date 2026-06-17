@@ -20,13 +20,13 @@ class BoardController extends Controller
         }
 
         return view('board', [
-            'items' => $items->filtered([
+            'items' => $items->paginated([
                 'status' => $filter,
                 'category' => $category,
                 'search' => $search,
                 'date' => $date,
                 'sort' => $sort,
-            ]),
+            ], 12),
             'filter' => $filter,
             'category' => $category,
             'categories' => config('lostfound.categories'),

@@ -44,7 +44,7 @@
                     <p>{{ $item['description'] ?: 'No description provided.' }}</p>
                 </div>
 
-                @if(!empty($item['can_manage']) || session('is_admin'))
+                @if(!empty($item['can_manage']) || auth()->user()?->isAdmin())
                     <div class="cf-detail-block cf-contact-block">
                         <h3>Private Contact Details</h3>
                         <p>{{ $item['contact_info'] }}</p>
@@ -127,7 +127,7 @@
                     </div>
                 @endif
 
-                @if ($showAdminDelete && session('is_admin'))
+                @if ($showAdminDelete && auth()->user()?->isAdmin())
                     <form method="post"
                           action="{{ route('admin.items.destroy', $item['id']) }}"
                           class="mt-3"

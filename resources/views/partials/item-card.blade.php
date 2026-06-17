@@ -57,7 +57,7 @@
             <a href="{{ route('board.index') }}" class="cf-btn cf-btn-outline mt-auto">View</a>
         @endif
 
-        @if (session('is_admin'))
+        @if (auth()->user()?->isAdmin())
             <form method="post"
                   action="{{ route('admin.items.destroy', $item['id']) }}"
                   class="cf-card-admin-actions"

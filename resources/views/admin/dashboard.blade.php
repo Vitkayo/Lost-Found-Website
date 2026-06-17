@@ -16,6 +16,9 @@
             @if (session('success'))
                 <div class="alert alert-success border-2 border-dark fw-bold py-2" data-auto-dismiss>{{ session('success') }}</div>
             @endif
+            @if (session('error'))
+                <div class="alert alert-danger border-2 border-dark fw-bold py-2" data-auto-dismiss>{{ session('error') }}</div>
+            @endif
 
             <div class="admin-dashboard-heading mb-4 text-center">
                 <h1 class="fw-bold text-dark h3 mb-1">Management Dashboard</h1>
@@ -110,9 +113,26 @@
                     @if($section === 'claims')
                         <select name="review_status" class="form-select border bg-white py-2" style="width: auto; font-size: 0.875rem;" onchange="this.form.submit()">
                             <option value="all" @selected($reviewStatus === 'all')>All review statuses</option>
-                            <option value="pending" @selected($reviewStatus === 'pending')>Pending review</option>
-                            <option value="approved" @selected($reviewStatus === 'approved')>Approved</option>
-                            <option value="rejected" @selected($reviewStatus === 'rejected')>Rejected</option>
+                        <option value="pending" @selected($reviewStatus === 'pending')>Pending review</option>
+                        <option value="approved" @selected($reviewStatus === 'approved')>Approved</option>
+                        <option value="rejected" @selected($reviewStatus === 'rejected')>Rejected</option>
+                        </select>
+                    @elseif($section === 'users')
+                        <select name="user_role" class="form-select border bg-white py-2" style="width: auto; min-width: 150px; font-size: 0.875rem;" onchange="this.form.submit()">
+                            <option value="all" @selected($userRole === 'all')>All roles</option>
+                            <option value="user" @selected($userRole === 'user')>Users</option>
+                            <option value="admin" @selected($userRole === 'admin')>Admins</option>
+                            <option value="super_admin" @selected($userRole === 'super_admin')>Super admins</option>
+                        </select>
+                        <select name="user_status" class="form-select border bg-white py-2" style="width: auto; min-width: 150px; font-size: 0.875rem;" onchange="this.form.submit()">
+                            <option value="all" @selected($userStatus === 'all')>All statuses</option>
+                            <option value="active" @selected($userStatus === 'active')>Active</option>
+                            <option value="suspended" @selected($userStatus === 'suspended')>Suspended</option>
+                        </select>
+                        <select name="user_verification" class="form-select border bg-white py-2" style="width: auto; min-width: 170px; font-size: 0.875rem;" onchange="this.form.submit()">
+                            <option value="all" @selected($userVerification === 'all')>All verification</option>
+                            <option value="verified" @selected($userVerification === 'verified')>Verified</option>
+                            <option value="unverified" @selected($userVerification === 'unverified')>Unverified</option>
                         </select>
                     @endif
                     <button type="submit" class="btn btn-primary btn-sm fw-bold rounded-pill px-3">Apply</button>
@@ -121,35 +141,85 @@
             @endif
 
             @if($section === 'users')
+                @php $canManageUsers = auth()->user()?->isSuperAdmin() === true; @endphp
+                <div class="row g-2 g-md-3 mb-3">
+                    <div class="col-6 col-xl-3">
+                        <div class="card border-0 shadow-sm p-3 h-100">
+                            <small class="text-uppercase text-muted">Total users</small>
+                            <div class="fw-bold fs-4">{{ $totalUsers }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-xl-3">
+                        <div class="card border-0 shadow-sm p-3 h-100">
+                            <small class="text-uppercase text-muted">Active / Suspended</small>
+                            <div class="fw-bold fs-4">{{ $activeUsers }} / {{ $suspendedUsers }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-xl-3">
+                        <div class="card border-0 shadow-sm p-3 h-100">
+                            <small class="text-uppercase text-muted">Admins</small>
+                            <div class="fw-bold fs-4">{{ $adminUsers }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-xl-3">
+                        <div class="card border-0 shadow-sm p-3 h-100">
+                            <small class="text-uppercase text-muted">Unverified</small>
+                            <div class="fw-bold fs-4">{{ $unverifiedUsers }}</div>
+                        </div>
+                    </div>
+                </div>
                 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0 small">
-                            <thead class="table-dark"><tr><th class="ps-3">User</th><th>Student ID</th><th>Joined</th><th>Access</th><th class="text-end pe-3">Update</th></tr></thead>
+                            <thead class="table-dark"><tr><th class="ps-3">User</th><th>Student ID</th><th>Email</th><th>Joined</th><th>Access</th><th>Support</th>@if($canManageUsers)<th class="text-end pe-3">Update</th>@endif</tr></thead>
                             <tbody>
                             @forelse($users as $user)
                                 <tr>
                                     <td class="ps-3"><strong>{{ $user->name }}</strong><br><small>{{ $user->email }}</small></td>
                                     <td>{{ $user->student_id ?: '-' }}</td>
+                                    <td>
+                                        @if($user->hasVerifiedEmail())
+                                            <span class="badge bg-success">Verified</span>
+                                        @else
+                                            <span class="badge bg-warning text-dark">Unverified</span>
+                                        @endif
+                                    </td>
                                     <td>{{ $user->created_at->toFormattedDateString() }}</td>
                                     <td><span class="badge {{ $user->status === 'active' ? 'bg-success' : 'bg-danger' }}">{{ ucfirst($user->status) }}</span> <span class="badge bg-primary">{{ str_replace('_', ' ', ucfirst($user->role)) }}</span></td>
+                                    <td>
+                                        <div class="d-flex flex-column gap-2">
+                                            @unless($user->hasVerifiedEmail())
+                                                <form method="post" action="{{ route('admin.users.verification.send', $user) }}">
+                                                    @csrf
+                                                    <button class="btn btn-sm btn-outline-primary w-100">Send verification</button>
+                                                </form>
+                                            @endunless
+                                            <form method="post" action="{{ route('admin.users.password-reset.send', $user) }}">
+                                                @csrf
+                                                <button class="btn btn-sm btn-outline-secondary w-100">Send reset code</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                    @if($canManageUsers)
                                     <td class="text-end pe-3">
                                         <form method="post" action="{{ route('admin.users.update', $user) }}" class="d-flex justify-content-end gap-2">
                                             @csrf @method('PATCH')
-                                            <select name="role" class="form-select form-select-sm" style="max-width: 130px">
+                                            <select name="role" class="form-select form-select-sm" style="max-width: 130px" @disabled(auth()->user()?->is($user))>
                                                 @foreach(['user' => 'User', 'admin' => 'Admin', 'super_admin' => 'Super Admin'] as $value => $label)
                                                     <option value="{{ $value }}" @selected($user->role === $value)>{{ $label }}</option>
                                                 @endforeach
                                             </select>
-                                            <select name="status" class="form-select form-select-sm" style="max-width: 120px">
+                                            <select name="status" class="form-select form-select-sm" style="max-width: 120px" @disabled(auth()->user()?->is($user))>
                                                 <option value="active" @selected($user->status === 'active')>Active</option>
                                                 <option value="suspended" @selected($user->status === 'suspended')>Suspended</option>
                                             </select>
-                                            <button class="btn btn-sm btn-primary">Save</button>
+                                            <button class="btn btn-sm btn-primary" @disabled(auth()->user()?->is($user))>Save</button>
                                         </form>
                                     </td>
+                                    @endif
                                 </tr>
                             @empty
-                                <tr><td colspan="5" class="text-center py-4">No users found.</td></tr>
+                                <tr><td colspan="{{ $canManageUsers ? 7 : 6 }}" class="text-center py-4">No users found.</td></tr>
                             @endforelse
                             </tbody>
                         </table>
@@ -287,6 +357,7 @@
                         </table>
                     </div>
                 </div>
+                <div class="mt-3">{{ $claims->withQueryString()->links() }}</div>
             @else
                 @php
                     $adminItemsQuery = fn (array $overrides = []) => array_filter(array_merge([
@@ -378,6 +449,7 @@
                         </table>
                     </div>
                 </div>
+                <div class="mt-3">{{ $items->withQueryString()->links() }}</div>
             @endif
         </div>
     </div>

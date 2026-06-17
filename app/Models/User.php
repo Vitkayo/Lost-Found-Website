@@ -45,4 +45,21 @@ class User extends Authenticatable
     {
         return in_array($this->role, ['admin', 'super_admin'], true);
     }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
+
+    public function hasVerifiedEmail(): bool
+    {
+        return $this->email_verified_at !== null;
+    }
+
+    public function markEmailAsVerified(): void
+    {
+        if (! $this->hasVerifiedEmail()) {
+            $this->forceFill(['email_verified_at' => now()])->save();
+        }
+    }
 }
