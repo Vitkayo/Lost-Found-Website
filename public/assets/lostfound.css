@@ -4425,3 +4425,10 @@ html[data-theme="dark"] .cf-upload-preview {
         text-align: left;
     }
 }
+
+@media (max-width: 767px) {
+    .cf-page > main .cf-section .cf-report-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.8rem;
+    }
+}
