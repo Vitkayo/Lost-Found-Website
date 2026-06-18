@@ -8,7 +8,7 @@
     <link rel="apple-touch-icon" href="{{ asset('assets/campus-found-logo-nav.png') }}">
     <link href="/assets/bootstrap-5.3.3/css/bootstrap.min.css" rel="stylesheet">
     <link href="/assets/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="/assets/lostfound.css?v=20260618-1" rel="stylesheet">
+    <link href="/assets/lostfound.css?v=20260618-5" rel="stylesheet">
     @stack('styles')
 </head>
 <body class="bg-white">

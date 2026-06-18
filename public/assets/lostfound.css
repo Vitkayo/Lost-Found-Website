@@ -1398,6 +1398,11 @@
     gap: 1.5rem;
 }
 
+.cf-section .cf-report-grid {
+    grid-template-columns: repeat(2, minmax(280px, 360px));
+    justify-content: center;
+}
+
 .cf-report-card {
     display: flex;
     flex-direction: column;
@@ -2751,6 +2756,7 @@ html[data-theme="dark"] .admin-section-tabs .nav-link:not(.active):hover {
 .cf-account-shell {
     padding-top: 2rem;
     padding-bottom: 5rem;
+    max-width: 1180px;
 }
 
 .cf-account-tabs {
@@ -2798,6 +2804,7 @@ html[data-theme="dark"] .admin-section-tabs .nav-link:not(.active):hover {
     place-items: center;
     align-content: center;
     padding: 1.25rem;
+    text-align: center;
     color: var(--cf-text);
     background: var(--cf-surface);
     border: 1px solid var(--cf-border);
@@ -2866,6 +2873,10 @@ html[data-theme="dark"] .admin-section-tabs .nav-link:not(.active):hover {
     display: flex;
     align-items: center;
     gap: 1rem;
+}
+
+.cf-account-row-main > div {
+    min-width: 0;
 }
 
 .cf-account-row-main h3,
@@ -2962,7 +2973,31 @@ html[data-theme="dark"] .cf-account-row {
         flex: 0 0 auto;
     }
 
-    .cf-account-stats,
+    .cf-account-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+    }
+
+    .cf-account-stats > div {
+        min-height: 118px;
+        padding: 0.85rem 0.55rem;
+    }
+
+    .cf-account-stats i {
+        font-size: 1rem;
+    }
+
+    .cf-account-stats strong {
+        margin: 0.15rem 0;
+        font-size: 1.65rem;
+        line-height: 1;
+    }
+
+    .cf-account-stats span {
+        font-size: 0.76rem;
+        line-height: 1.2;
+    }
+
     .cf-account-settings {
         grid-template-columns: 1fr;
     }
@@ -3841,6 +3876,10 @@ html[data-theme="dark"] .cf-account-row {
         gap: 0.8rem;
     }
 
+    .cf-section .cf-report-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .cf-category-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 0.8rem;
@@ -4237,6 +4276,35 @@ html[data-theme="dark"] .cf-account-row {
     margin-inline: auto;
 }
 
+.cf-section .cf-empty-state,
+.cf-board-page .cf-empty-state,
+.cf-claims-page .cf-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+    text-align: center;
+}
+
+.cf-section .cf-empty-state h2,
+.cf-section .cf-empty-state h3,
+.cf-section .cf-empty-state p,
+.cf-board-page .cf-empty-state h2,
+.cf-board-page .cf-empty-state h3,
+.cf-board-page .cf-empty-state p,
+.cf-claims-page .cf-empty-state h2,
+.cf-claims-page .cf-empty-state h3,
+.cf-claims-page .cf-empty-state p {
+    text-align: center;
+}
+
+.cf-section .cf-empty-state .cf-btn,
+.cf-board-page .cf-empty-state .cf-btn,
+.cf-claims-page .cf-empty-state .cf-btn {
+    margin-inline: auto;
+}
+
 .cf-danger-form {
     border: 1px solid rgba(220, 38, 38, 0.22);
 }
@@ -4325,8 +4393,14 @@ html[data-theme="dark"] .cf-upload-preview {
     .cf-account-row-meta,
     .cf-account-message,
     .cf-claim-card,
-    .cf-empty-state {
+    .cf-account-dashboard .cf-empty-state {
         text-align: left;
+    }
+
+    .cf-section .cf-empty-state,
+    .cf-board-page .cf-empty-state,
+    .cf-claims-page .cf-empty-state {
+        text-align: center;
     }
 
     .cf-claims-page .cf-empty-state,
