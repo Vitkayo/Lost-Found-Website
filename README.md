@@ -1,34 +1,56 @@
 # Campus Found
 
-Campus Found is a responsive lost-and-found management system for campus communities. Students and staff can browse reports, submit lost or found items, send ownership claims, and review claim activity. Administrators can moderate reports and claims from a protected dashboard.
+Campus Found is a responsive lost-and-found management system for campus communities. It helps students and staff report lost or found items, browse campus reports, submit ownership claims, and manage item recovery from one central website instead of scattered chat or social media posts.
+
+Production website:
+
+```text
+https://campusfound.me
+```
+
+## Overview
+
+Campus Found has two main areas:
+
+- User side: public homepage, searchable board, account dashboard, report form, claims, found reports, email verification, and password reset.
+- Admin side: protected dashboard for moderating reports, reviewing claims, managing users, resolving disputes, and viewing audit activity.
 
 ## Technology Stack
 
-- Frontend: Blade templates, HTML, CSS, Bootstrap assets, Vite
-- Backend: Laravel, PHP
+- Backend: Laravel 13, PHP 8.4
 - Database: MySQL
-- Authentication: Laravel session authentication and Sanctum API tokens
+- Frontend: Blade templates, HTML, CSS, Bootstrap 5, Bootstrap Icons, JavaScript
+- Build tooling: Vite, npm
+- Authentication: Laravel session authentication and Laravel Sanctum API tokens
+- Email: Brevo SMTP
+- Queue: Laravel database queue
 - Storage: Laravel public disk with optimized WebP uploads
+- Testing: PHPUnit / Laravel feature tests
 - API testing: Postman collection
+- Deployment: DigitalOcean, Ubuntu, Nginx, PHP-FPM 8.4, MySQL, Supervisor, Certbot, Namecheap DNS, GitHub
 
 ## Main Features
 
-- Public home page and community board
-- Search, status filters, category filters, date filter, and sorting
+- Public homepage with recent lost and found reports
+- Community board with search, status filter, category filter, date filter, and sorting
 - User registration, login, logout, and account dashboard
-- User dashboard API for reports, claims, and account statistics
-- Email verification for new user accounts
+- Email verification by code
 - Password reset by email code
 - User-owned report creation, editing, and deletion
-- Lost/found report image upload and optimization
-- Claim submission with ownership verification answers
-- Owner review for pending claims
-- Recently claimed section
-- Admin dashboard for reports, claims, users, moderation, and audit activity
-- Sanctum API endpoints with Postman examples
+- Lost/found item image upload and WebP optimization
+- Claim submission with private ownership proof
+- Found-report flow for lost items
+- Owner review for pending claims and found reports
+- Recently claimed/recovered items
+- Admin dashboard for reports, claims, users, moderation, disputes, and audit logs
+- Role-based admin access with `user`, `admin`, and `super_admin`
+- Sanctum API endpoints for auth, account data, items, claims, email verification, and password reset
+- Postman collection for API testing
 - Responsive desktop and mobile layouts
 
 ## Local Setup
+
+Install PHP and JavaScript dependencies:
 
 ```bash
 composer install
@@ -37,7 +59,7 @@ copy .env.example .env
 php artisan key:generate
 ```
 
-Update `.env` with your own local database credentials:
+Update `.env` with your local database credentials:
 
 ```env
 DB_CONNECTION=mysql
@@ -48,7 +70,7 @@ DB_USERNAME=your_local_user
 DB_PASSWORD=your_local_password
 ```
 
-Then run:
+Run migrations, link storage, build assets, and start the app:
 
 ```bash
 php artisan migrate --seed
@@ -57,7 +79,7 @@ npm run build
 php artisan serve
 ```
 
-Open the website at:
+Open the local site:
 
 ```text
 http://127.0.0.1:8000
@@ -69,7 +91,7 @@ For local email testing, use the log mailer:
 MAIL_MAILER=log
 ```
 
-If you use queued email locally, keep a second terminal running:
+If queued email is enabled locally, keep a worker running in another terminal:
 
 ```bash
 php artisan queue:work
@@ -91,8 +113,6 @@ Admin URL:
 http://127.0.0.1:8000/admin/login
 ```
 
-Do not commit `.env`, real admin passwords, database passwords, API keys, exported database files, or local SQLite databases.
-
 Public registration always creates normal user accounts. Administrator roles must be assigned by a super administrator inside the protected admin dashboard.
 
 Role rules:
@@ -102,53 +122,49 @@ Role rules:
 - `super_admin`: can manage users, roles, and account status.
 - The final active super administrator cannot be demoted or suspended.
 
-## Testing
-
-```bash
-composer test
-npm run build
-```
-
-Optional quality checks:
-
-```bash
-composer audit --locked
-vendor/bin/pint --test
-```
-
-Current verified result:
-
-```text
-31 tests, 216 assertions
-```
-
 ## Email Setup
 
-Campus Found supports email verification, password reset codes, and claim notifications. This project now uses standard SMTP so you can connect it to MailerSend and keep Resend for another project.
+Campus Found uses Brevo SMTP for production email.
+
+Email is used for:
+
+- Registration verification codes
+- Password reset codes
+- Claim notifications
+- Report and claim status notifications
+
+Example production mail configuration:
 
 ```env
 MAIL_MAILER=smtp
-MAIL_HOST=smtp.mailersend.net
+MAIL_HOST=smtp-relay.brevo.com
 MAIL_PORT=587
-MAIL_USERNAME=your_mailersend_smtp_username
-MAIL_PASSWORD=your_mailersend_smtp_password
+MAIL_USERNAME=your_brevo_smtp_username
+MAIL_PASSWORD=your_brevo_smtp_password
 MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS="noreply@campusfound.me"
 MAIL_FROM_NAME="${APP_NAME}"
 QUEUE_CONNECTION=database
 ```
 
-In MailerSend, verify the sending domain `campusfound.me`, then generate an SMTP user for that domain and place the username and password in your `.env`.
-
-Because emails are queued, production needs a running worker:
+Because emails are queued, production should run a queue worker:
 
 ```bash
 php artisan queue:work --tries=3
 ```
 
-## Postman
+## API Support
 
-Import:
+The project includes API routes for:
+
+- Authentication
+- Account data
+- Items
+- Claims
+- Email verification
+- Password reset
+
+Import the Postman collection:
 
 ```text
 postman/LostFound_API.postman_collection.json
@@ -167,26 +183,51 @@ Before running requests, fill the collection variables locally:
 
 The collection does not include real login credentials.
 
-## Security Notes
+## Testing And Audit
 
-- `.env` is ignored and must stay local.
-- Generated files, local databases, SQL dumps, storage uploads, and keys are ignored.
-- The seeded data is sample-only and does not create an administrator account.
-- Use unique passwords for local, staging, and production databases.
-- Rotate any credentials that were previously committed or shared.
-- If credentials were pushed in Git history, rewrite or recreate the repository history before public sharing.
+Run the main verification commands:
+
+```bash
+composer test
+npm run build
+composer audit --locked
+```
+
+Current verified result:
+
+```text
+36 tests passed, 253 assertions
+npm production build passed
+composer audit: no security vulnerability advisories found
+```
 
 ## Production Checklist
 
 - Set `APP_ENV=production`.
 - Set `APP_DEBUG=false`.
 - Set the public HTTPS `APP_URL`.
-- Generate a new production `APP_KEY`.
+- Generate a fresh production `APP_KEY`.
 - Use a dedicated production database user and password.
-- Configure mail credentials through environment variables only.
+- Configure Brevo SMTP credentials through environment variables only.
 - Run `php artisan migrate --force`.
 - Run `php artisan storage:link`.
 - Run `php artisan optimize`.
-- Configure a queue worker for verification, password reset, and claim notification emails.
+- Configure Supervisor for the Laravel queue worker.
 - Configure persistent storage or object storage for uploaded images.
-- Enable HTTPS and rotate any exposed credentials before deployment.
+- Serve the app through Nginx and PHP-FPM 8.4.
+- Enable HTTPS with Certbot / Let's Encrypt.
+- Keep DNS configured through Namecheap for `campusfound.me`.
+
+## Security Notes
+
+- `.env` is ignored and must stay local.
+- Generated files, local databases, SQL dumps, storage uploads, and keys are ignored.
+- The seeded data is sample-only and does not create an administrator account.
+- Do not commit real admin passwords, database passwords, API keys, SMTP credentials, exported databases, or local SQLite databases.
+- Use unique passwords for local, staging, and production databases.
+- Rotate any credentials that were previously committed or shared.
+- If credentials were pushed in Git history, rewrite or recreate the repository history before public sharing.
+
+## Project Status
+
+Campus Found is deployed as a production Laravel website for `campusfound.me`. The codebase includes automated feature coverage for authentication, email verification, password reset, reports, claims, image uploads, account actions, API endpoints, admin moderation, user management, audit logs, and dispute resolution.
