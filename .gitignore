@@ -26,6 +26,7 @@
 /.zed
 /auth.json
 /node_modules
+/New UI
 /outputs
 /public/build
 /public/fonts-manifest.dev.json
