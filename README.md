@@ -183,23 +183,6 @@ Before running requests, fill the collection variables locally:
 
 The collection does not include real login credentials.
 
-## Testing And Audit
-
-Run the main verification commands:
-
-```bash
-composer test
-npm run build
-composer audit --locked
-```
-
-Current verified result:
-
-```text
-36 tests passed, 253 assertions
-npm production build passed
-composer audit: no security vulnerability advisories found
-```
 
 ## Production Checklist
 
@@ -218,15 +201,6 @@ composer audit: no security vulnerability advisories found
 - Enable HTTPS with Certbot / Let's Encrypt.
 - Keep DNS configured through Namecheap for `campusfound.me`.
 
-## Security Notes
-
-- `.env` is ignored and must stay local.
-- Generated files, local databases, SQL dumps, storage uploads, and keys are ignored.
-- The seeded data is sample-only and does not create an administrator account.
-- Do not commit real admin passwords, database passwords, API keys, SMTP credentials, exported databases, or local SQLite databases.
-- Use unique passwords for local, staging, and production databases.
-- Rotate any credentials that were previously committed or shared.
-- If credentials were pushed in Git history, rewrite or recreate the repository history before public sharing.
 
 ## Project Status
 
