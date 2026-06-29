@@ -18,6 +18,7 @@
 .phpactor.json
 .phpunit.result.cache
 /.codex
+/.agents
 /.cursor/
 /.idea
 /.nova
