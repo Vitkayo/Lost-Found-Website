@@ -1,0 +1,17 @@
+{
+  "base_url": "http://127.0.0.1:8000",
+  "viewport": {
+    "width": 1280,
+    "height": 800
+  },
+  "user": {
+    "name": "Alex Rivera",
+    "email": "demo.user@example.com",
+    "password": "DemoPassword1!"
+  },
+  "admin": {
+    "name": "Campus Admin",
+    "email": "demo.admin@example.com",
+    "password": "DemoAdminPass1!"
+  }
+}

@@ -60,3 +60,5 @@ legacy-react/
 postman/.postman/
 postman/postman/
 PROJECT_*.md
+/scripts/screenshot-config.json
+/scripts/.playwright-browsers/

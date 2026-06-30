@@ -4,11 +4,15 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "screenshots:prepare": "php scripts/prepare-screenshot-data.php",
+        "screenshots:capture": "node scripts/capture-portfolio-screenshots.mjs",
+        "screenshots": "npm run screenshots:prepare && npm run screenshots:capture"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
         "laravel-vite-plugin": "^3.1",
+        "playwright": "^1.52.0",
         "tailwindcss": "^4.0.0",
         "vite": "^8.0.0"
     }
